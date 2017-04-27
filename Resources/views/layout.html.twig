@@ -1,31 +1,8 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8" />
-    </head>
-    <body>
-        <div>
-            {% if is_granted("IS_AUTHENTICATED_REMEMBERED") %}
-                {{ 'layout.logged_in_as'|trans({'%username%': app.user.username}, 'FOSUserBundle') }} |
-                <a href="{{ path('fos_user_security_logout') }}">
-                    {{ 'layout.logout'|trans({}, 'FOSUserBundle') }}
-                </a>
-            {% else %}
-                <a href="{{ path('fos_user_security_login') }}">{{ 'layout.login'|trans({}, 'FOSUserBundle') }}</a>
-            {% endif %}
-        </div>
+{%
+    This is to override the default login template to use the TB one.
+    This shoud have been done override templates in symfony itself no editing the vendor.
 
-        {% for type, messages in app.session.flashbag.all() %}
-            {% for message in messages %}
-                <div class="flash-{{ type }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endfor %}
-
-        <div>
-            {% block fos_user_content %}
-            {% endblock fos_user_content %}
-        </div>
-    </body>
-</html>
+    This was originally done on 20 November 2013.
+    Exactly commit in parent repository 48fd1507e7b7890351652d4b950aa42e8aaf219f
+ %}
+{% extends "ArithonTempBuddyBundle:Theme:Twig/Login.html.twig" %}
