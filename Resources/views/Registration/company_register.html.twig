@@ -1,0 +1,58 @@
+{% extends "FOSUserBundle::layout.html.twig" %}
+
+{% block fos_user_content %}
+{% trans_default_domain 'FOSUserBundle' %}
+
+<script type='text/javascript' src='http://code.jquery.com/jquery-1.5.2.js'></script>
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+
+
+
+
+
+<br><br><h2>COMPANY REGISTER</h2> <br>
+
+
+<form action="{{ path('fos_user_registration_register_company') }}" {{ form_enctype(form) }} method="POST" class="fos_user_registration_register_company">
+    {{ form_widget(form) }}
+    
+    <br>Company Name:<input id="compName" name="compName" type="text" value="" required>
+    <br>Address:<input id="address" name="address" type="text" value="" required>
+    <br>Sector:<input id="sector" name="sector" type="text" value=""  required>
+    <br>Phone:<input id="phone" name="phone" type="phone" value="" required>
+    
+    <br><br>            
+        
+    
+    Request access to publish jobs in {% if agency_value %}
+       <select id="agencyID" name="agencyID" disabled>
+          <option value="{{ agency_value }}">{{ agency_value }}</option>
+       </select>
+    {% else %}
+       <select id="agencyID" name="agencyID" >
+         {% for item in agency_selector %}
+            <option value="{{ item.name }}">{{ item.name }}</option>
+         {% endfor %}
+       </select>
+    {% endif %}
+    <br><textarea id="reqCom" name="reqCom"  rows="5" cols="40" maxlength="200">
+       I'd like join to your publisher list
+    </textarea>
+
+    <br><br>
+
+    
+    <div>
+        <input type="submit" value="{{ 'registration.submit'|trans }}" />
+    </div>
+</form>
+
+<script type="text/javascript"> 
+
+
+
+</script>
+
+{% endblock fos_user_content %}

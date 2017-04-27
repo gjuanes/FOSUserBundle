@@ -1,0 +1,21 @@
+{% extends "FOSUserBundle::layout.html.twig" %}
+
+{% block fos_user_content %}
+{% trans_default_domain 'FOSUserBundle' %}
+
+AGENCY REGISTRATION FORM<br><br>
+
+<form action="{{ path('fos_user_registration_register_agency') }}" {{ form_enctype(form) }} method="POST" class="fos_user_registration_register_agency">
+    {{ form_widget(form) }}
+    
+    
+    <br>Agency Name:<input id="agName" name="agName" type="text" value="" required>
+    <br>Address:<input id="address" name="address" type="text" value="" required>
+    <br>Phone:<input id="phone" name="phone" type="phone" value="" required><br><br>
+    
+    <div>
+        <input type="submit" value="{{ 'registration.submit'|trans }}" />
+    </div>
+</form>
+
+{% endblock fos_user_content %}

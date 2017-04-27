@@ -1,0 +1,170 @@
+{% extends "FOSUserBundle::layout.html.twig" %}
+
+{% block fos_user_content %}
+{% trans_default_domain 'FOSUserBundle' %}
+
+<script type='text/javascript' src='http://code.jquery.com/jquery-1.5.2.js'></script>
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+  <script>
+  $(function() {
+    $( "#DOB" ).datepicker({
+      changeMonth: true,
+      changeYear: true,
+      dateFormat: "yy-mm-dd"
+    });
+  });
+  </script>
+
+
+
+
+<br><br><h2>CANDIDATE REGISTER</h2> <br>
+
+
+<form action="{{ path('fos_user_registration_register_candidate') }}" {{ form_enctype(form) }} method="POST" class="fos_user_registration_register_candidate">
+    {{ form_widget(form) }}
+    
+    <br>Real Name:<input id="realName" name="realName" type="text" value="" required>
+    <br>Date of born:<input id="DOB" name="DOB" type="text" pattern="[0-9]{4,4}-[0-9]{2,2}-[0-9]{2,2}" value="" readonly required>
+    <br>SSN:<input id="SSN" name="SSN" type="text" value=""  required>
+    <br>Phone:<input id="Phone" name="Phone" type="text" value="" required>
+    <br>Address:<input id="address" name="address" type="text" value="" required>
+    
+    <br><br>            
+        
+    
+    {% if agency_value %}
+       Agency: <select id="agencyID" name="agencyID" disabled>
+          <option value="{{ agency_value }}">{{ agency_value }}</option>
+       </select>
+    {% else %}
+       Agency: <select id="agencyID" name="agencyID" >
+         {% for item in agency_selector %}
+            <option value="{{ item.name }}">{{ item.name }}</option>
+         {% endfor %}
+       </select>
+    {% endif %}
+    
+    <div id="specificAttributes">
+    </div>
+
+    <br><br>
+
+    
+    <div>
+        <input type="submit" value="{{ 'registration.submit'|trans }}" />
+    </div>
+</form>
+
+<script type="text/javascript"> 
+$(window).load(function(){
+
+   val_for_role = document.getElementById("agencyID").value;
+   refresh_agency_roles( val_for_role );
+});
+
+$("#agencyID").change(function() {
+
+      val_for_role = $(this).val();
+      refresh_agency_roles( val_for_role );
+
+});
+
+
+function refresh_agency_roles( name_agency_local ) {
+   var value = name_agency_local;
+        
+   //var value = document.getElementById("MainID").value;
+
+   var values= {
+      "name":value
+   } ;
+
+   $.ajax({
+        type: "POST",
+        url: "http://rayco.arithon.com/Symfony/web/app_dev.php/public/requirements",
+        data: buildQuery(values),
+        success: function( data ){
+
+            objs=$.parseJSON(data);
+         //   alert( data);       
+            //alert( objs);           
+                var writer = document.getElementById("specificAttributes");
+
+                var ALLT ='';
+                var pickerList= new Array();            
+                
+               for (var i = 0; i<objs.length; i++) {
+                //for (var obj in objs) {
+                obj=objs[i];
+            //    alert(obj.type);
+                   if ( obj.type == "Value" ) {
+                      ALLT += obj.name+'<input id="att'+obj.name+'" name="att'+obj.name+'" type="text" value="" required><br>';
+                   }
+                   else if ( obj.type == "Numeric" ) {
+                      ALLT += obj.name+'<input id="att'+obj.name+'" name="att'+obj.name+'" type="number" step="any" value="" required><br>';
+                   }
+                   else if ( obj.type == "Date" ) {
+                       ALLT += obj.name+'<input id="att'+obj.name+'" name="att'+obj.name+'" type="text" pattern="[0-9]{4,4}-[0-9]{2,2}-[0-9]{2,2}" value="" readonly required><br>';
+
+                                      pickerList.push( "#att"+obj.name  );
+    
+                   }
+                   else if ( obj.type == "List" ) {
+                      ALLT +=obj.name+': <select id="att'+obj.name+'" name="att'+obj.name+'" >';
+                      for (var j = 0; j<obj.list.length; j++) {
+                         ob=obj.list[j];
+                         ALLT += '<option value="'+ob+'">'+ob+'</option>';
+                      }
+                      ALLT += "</select><br>";
+                   }
+                   
+                }
+
+                writer.innerHTML = ALLT;      
+                
+               for (i=0;i<pickerList.length;i++) {
+                 //   alert(pickerList[i]); 
+                     $( pickerList[i] ).datepicker({
+                               changeMonth: true,
+                               changeYear: true,
+                               dateFormat: "yy-mm-dd"
+                      });
+                }   
+ 
+     
+        },
+        error:function(e){
+            alert("failure can't connect to DB");
+        }
+     });
+
+}
+
+
+
+
+function buildQuery(obj) {
+        var Result= '';
+        if(typeof(obj)== 'object') {
+            jQuery.each(obj, function(key, value) {
+                Result+= (Result) ? '&' : '';
+                if(typeof(value)== 'object' && value.length) {
+                    for(var i=0; i<value.length; i++) {
+                        Result+= [key+'[]', encodeURIComponent(value[i])].join('=');
+                    }
+                } else {
+                    Result+= [key, encodeURIComponent(value)].join('=');
+                }
+            });
+        }
+        return Result;
+    } 
+ 
+
+
+</script>
+
+{% endblock fos_user_content %}
