@@ -1,6 +1,13 @@
 <?php
 
 /*
+    This is to override the default login and signup logic.
+    This should be done creating a new provider and overriding there.
+
+    This was originally done on 06 July 2016.
+    Exactly last commit in parent repository 327a57ea0c33ebdc7cd0e7bab6357260a5a67085
+ */
+/*
  * This file is part of the FOSUserBundle package.
  *
  * (c) FriendsOfSymfony <http://friendsofsymfony.github.com/>
@@ -14,7 +21,6 @@ namespace FOS\UserBundle\Controller;
 use FOS\UserBundle\FOSUserEvents;
 use FOS\UserBundle\Event\FormEvent;
 use FOS\UserBundle\Event\GetResponseUserEvent;
-use FOS\UserBundle\Event\UserEvent;
 use FOS\UserBundle\Event\FilterUserResponseEvent;
 use Symfony\Component\DependencyInjection\ContainerAware;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,6 +28,8 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use FOS\UserBundle\Model\UserInterface;
+
+
 
 /**
  * Controller managing the registration
@@ -31,10 +39,11 @@ use FOS\UserBundle\Model\UserInterface;
  */
 class RegistrationController extends ContainerAware
 {
-    public function registerAction(Request $request)
+
+    public function registerAgencyAction(Request $request)
     {
         /** @var $formFactory \FOS\UserBundle\Form\Factory\FactoryInterface */
-        $formFactory = $this->container->get('fos_user.registration.form.factory');
+        $formFactory = $this->container->get('fos_user.registration.ag.form.factory');
         /** @var $userManager \FOS\UserBundle\Model\UserManagerInterface */
         $userManager = $this->container->get('fos_user.user_manager');
         /** @var $dispatcher \Symfony\Component\EventDispatcher\EventDispatcherInterface */
@@ -59,13 +68,35 @@ class RegistrationController extends ContainerAware
             if ($form->isValid()) {
                 $event = new FormEvent($form, $request);
                 $dispatcher->dispatch(FOSUserEvents::REGISTRATION_SUCCESS, $event);
+                
+                
+                $user->addRole("ROLE_REC_ADMIN");
+                
 
                 $userManager->updateUser($user);
-
+                
                 if (null === $response = $event->getResponse()) {
-                    $url = $this->container->get('router')->generate('fos_user_registration_confirmed');
+                    $url = $this->container->get('router')->generate('fos_user_registration_confirmed_ag');
                     $response = new RedirectResponse($url);
                 }
+
+
+                $rName =  $request->request->get('agName') ;
+                $address =  $request->request->get('address') ;
+                $phone =  $request->request->get('phone') ;
+                $phone2 = "" ;
+                $email =  $user->getEmail()  ;
+                $prop1 =  ""  ;
+                $prop2 =  ""  ;
+
+                $dbUtils =  $this->container->get("arithon.DB.utils");
+                $intercomUtils = $this->container->get('arithon.intercom.utils');
+
+                $agencyId = $dbUtils->insertAgency($rName, $address, $phone, $phone2, $email, $prop1, $prop2, $user->getId());
+
+                $db = $dbUtils->getAgDbByID($agencyId);
+                $intercomUtils->pushRecruiter($db, $user->getId());
+                $intercomUtils->pushAgency($agencyId);
 
                 $dispatcher->dispatch(FOSUserEvents::REGISTRATION_COMPLETED, new FilterUserResponseEvent($user, $request, $response));
 
@@ -73,8 +104,201 @@ class RegistrationController extends ContainerAware
             }
         }
 
-        return $this->container->get('templating')->renderResponse('FOSUserBundle:Registration:register.html.'.$this->getEngine(), array(
+        return $this->container->get('templating')->renderResponse('FOSUserBundle:Registration:agency_register.html.'.$this->getEngine(), array(
             'form' => $form->createView(),
+        ));
+    }
+
+
+
+
+
+    public function registerCompanyAction(Request $request)
+    {
+        /** @var $formFactory \FOS\UserBundle\Form\Factory\FactoryInterface */
+        $formFactory = $this->container->get('fos_user.registration.co.form.factory');
+        /** @var $userManager \FOS\UserBundle\Model\UserManagerInterface */
+        $userManager = $this->container->get('fos_user.user_manager');
+        /** @var $dispatcher \Symfony\Component\EventDispatcher\EventDispatcherInterface */
+        $dispatcher = $this->container->get('event_dispatcher');
+
+        $user = $userManager->createUser();
+        $user->setEnabled(true);
+
+        $event = new GetResponseUserEvent($user, $request);
+        $dispatcher->dispatch(FOSUserEvents::REGISTRATION_INITIALIZE, $event);
+
+        if (null !== $event->getResponse()) {
+            return $event->getResponse();
+        }
+
+        $form = $formFactory->createForm();
+        $form->setData($user);
+
+        if ('POST' === $request->getMethod()) {
+            $form->bind($request);
+
+            if ($form->isValid()
+                && $request->request->has('agencyID')
+                    ) {
+                
+                $user->addRole("ROLE_COMPANY");
+            
+
+                $event = new FormEvent($form, $request);
+                $dispatcher->dispatch(FOSUserEvents::REGISTRATION_SUCCESS, $event);
+
+                $userManager->updateUser($user);
+
+                if (null === $response = $event->getResponse()) {
+                    $url = $this->container->get('router')->generate('fos_user_registration_confirmed_co');
+                    $response = new RedirectResponse($url);
+                }
+                
+                
+                $agencyCA =  $request->request->get('agencyID') ;
+                $agencyID = $this->container->get("arithon.DB.utils")->getAgID($agencyCA);
+
+
+                //Give access only to right DB
+                $this->container->get("arithon.DB.utils")->allow_user_access($agencyCA, $user->getId());
+                
+                //Insert work info
+                // TODO INSERT WORKER   insert_data_That_not_is_in_user
+                $rName =  $request->request->get('compName') ;
+                $address =  $request->request->get('address') ;
+                $sector =  $request->request->get('sector') ;
+                $cName =  $request->request->get('contactName') ;
+                $phone =  $request->request->get('phone') ;
+                $reqCom =  $request->request->get('reqCom') ;
+                $this->container->get("arithon.DB.utils")->insertClient($rName, $address, $sector, $cName, $phone, $user->getId());
+                $this->container->get("arithon.DB.utils")->insertCompanyPetition($user->getId(), $agencyID, $reqCom);
+                $dispatcher->dispatch(FOSUserEvents::REGISTRATION_COMPLETED, new FilterUserResponseEvent($user, $request, $response));
+                return $response;
+            }
+        }
+
+        $agency_selector="";
+        $agency_value="";
+        if ( $request->query->has('agencyID') )
+           $agency_value = $request->query->get('agencyID');
+        else
+            $agency_selector =  $this->container->get("arithon.DB.utils")->AgenciesAllp();
+        
+        
+        return $this->container->get('templating')->renderResponse('FOSUserBundle:Registration:company_register.html.'.$this->getEngine(), array(
+            'form' => $form->createView(),
+            'agency_value' => $agency_value,
+            'agency_selector' => $agency_selector,
+        ));
+    }
+
+
+
+
+
+
+
+    public function registerCandidateAction(Request $request)
+    {
+        /** @var $formFactory \FOS\UserBundle\Form\Factory\FactoryInterface */
+        $formFactory = $this->container->get('fos_user.registration.ca.form.factory');
+        /** @var $userManager \FOS\UserBundle\Model\UserManagerInterface */
+        $userManager = $this->container->get('fos_user.user_manager');
+        /** @var $dispatcher \Symfony\Component\EventDispatcher\EventDispatcherInterface */
+        $dispatcher = $this->container->get('event_dispatcher');
+
+        $user = $userManager->createUser();
+        $user->setEnabled(true);
+
+        $event = new GetResponseUserEvent($user, $request);
+        $dispatcher->dispatch(FOSUserEvents::REGISTRATION_INITIALIZE, $event);
+
+        if (null !== $event->getResponse()) {
+            return $event->getResponse();
+        }
+
+        $form = $formFactory->createForm();
+        $form->setData($user);
+
+        if ('POST' === $request->getMethod()) {
+            $form->bind($request);
+
+            if ($form->isValid()
+                && $request->request->has('agencyID')
+                    ) {
+                
+                $user->addRole("ROLE_USER");
+            
+
+                $event = new FormEvent($form, $request);
+                $dispatcher->dispatch(FOSUserEvents::REGISTRATION_SUCCESS, $event);
+
+                $userManager->updateUser($user);
+
+                if (null === $response = $event->getResponse()) {
+                    $url = $this->container->get('router')->generate('fos_user_registration_confirmed_ca');
+                    $response = new RedirectResponse($url);
+                }
+                
+                
+                $agencyCA =  $request->request->get('agencyID') ;
+               // $user->addRole($agencyCA);
+                
+                //Insert candidate
+                $candidateID =  $this->container->get("arithon.DB.utils")->addNewCandidate("OK",$user->getId(), $agencyCA);
+
+                $this->container->get("arithon.ApiKeys.utils")->addMobileUser($user->getId() );
+                
+       
+                      
+                //Insert agency parameters
+                foreach($request->request->all() as $key => $value) {
+                    
+                    if (preg_match('/^att/',$key)) {
+                        $value = $request->request->get($key);
+                        $paramName = preg_replace('/att/', '', $key, 1);
+                        //$user->addRole($paramName);
+                        $agency_selector =  $this->container->get("arithon.DB.utils")->
+                                             addCandidateAtribute($agencyCA, $candidateID, $paramName, $value);
+                    }
+                    
+                }
+                
+                //Give access only to right DB
+                $this->container->get("arithon.DB.utils")->allow_user_access($agencyCA, $user->getId());
+                
+                //Give a calendar to the candidate
+                $this->container->get("arithon.DB.utils")->assign_calendar($user->getId(),  "Availability", date('Y'));
+                
+                //Insert work info
+                // TODO INSERT WORKER   insert_data_That_not_is_in_user
+                $rName =  $request->request->get('realName') ;
+                $DOB =  $request->request->get('DOB') ;
+                $SSN =  $request->request->get('SSN') ;
+                $Phone =  $request->request->get('Phone') ;
+                $address =  $request->request->get('address') ;
+
+                $this->container->get("arithon.DB.utils")->insertNewWorker($rName, $DOB, $SSN, $Phone, $address, $user->getId());
+
+                $dispatcher->dispatch(FOSUserEvents::REGISTRATION_COMPLETED, new FilterUserResponseEvent($user, $request, $response));
+
+                return $response;
+            }
+        }
+
+        $agency_selector="";
+        $agency_value="";
+        if ( $request->query->has('agencyID') )
+           $agency_value = $request->query->get('agencyID');
+        else
+            $agency_selector =  $this->container->get("arithon.DB.utils")->AgenciesAllp();
+        
+        
+        return $this->container->get('templating')->renderResponse('FOSUserBundle:Registration:candidate_register.html.'.$this->getEngine(), array(
+            'form' => $form->createView(),
+            'agency_value' => $agency_value,
+            'agency_selector' => $agency_selector,
         ));
     }
 
