@@ -1,4 +1,11 @@
-{% extends "FOSUserBundle::layout.html.twig" %}
+{%
+    This is to override the default login template to use the TB one.
+    This shoud have been done override templates in symfony itself no editing the vendor.
+
+    This was originally done on 07 April 2014.
+    Exactly commit in parent repository 9e039cbe29fdb596367c8675abdc38aa619de619
+ %}
+ {% extends "FOSUserBundle::layout.html.twig" %}
 
 {% trans_default_domain 'FOSUserBundle' %}
 
@@ -7,18 +14,70 @@
     <div>{{ error|trans }}</div>
 {% endif %}
 
-<form action="{{ path("fos_user_security_check") }}" method="post">
-    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}" />
+    <style>
+        .form-class {
+            margin-bottom: 0px !important;
+        }
 
-    <label for="username">{{ 'security.login.username'|trans }}</label>
-    <input type="text" id="username" name="_username" value="{{ last_username }}" required="required" />
+        .form-login-message {
+            margin-bottom: 25px;
+        }
 
-    <label for="password">{{ 'security.login.password'|trans }}</label>
-    <input type="password" id="password" name="_password" required="required" />
+        .form-remember-me {
+            margin-bottom: 20px
+        }
 
-    <input type="checkbox" id="remember_me" name="_remember_me" value="on" />
-    <label for="remember_me">{{ 'security.login.remember_me'|trans }}</label>
+        .form-footer {
+            padding-left:0
+        }
+    </style>
 
-    <input type="submit" id="_submit" name="_submit" value="{{ 'security.login.submit'|trans }}" />
-</form>
+    <form action="{{ path("fos_user_security_check") }}" method="post" class="form-horizontal form-class">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token }}"/>
+        <div class="panel-body">
+            <h4 class="text-center form-login-message">Log in to get started </h4>
+
+            <div class="form-group">
+                <div class="col-sm-12">
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="fa fa-user"></i></span>
+                        <input type="text" class="form-control" id="username" name="_username" placeholder="Username"
+                               required>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-12">
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+                        <input type="password" class="form-control" id="password" name="_password"
+                               placeholder="Password" required>
+                    </div>
+                </div>
+            </div>
+            <div class="clearfix">
+                <div class="pull-right">
+                    <label>
+                        <input type="checkbox" name="_remember_me" class="form-remember-me"
+                                                      checked=""> Remember Me
+                    </label>
+                </div>
+            </div>
+
+
+        </div>
+        <div class="panel-footer">
+            <a href="{{ path('fos_user_resetting_request') }}" class="pull-left btn btn-link form-footer">Forgot
+                password?</a>
+
+            <div class="pull-right">
+                <input class="btn btn-primary" type="submit" id="_submit" name="_submit" value="Log In"/>
+            </div>
+        </div>
+
+    </form>
+
+
+
+
 {% endblock fos_user_content %}
