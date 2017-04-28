@@ -21,6 +21,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+use Arithon\TempBuddyBundle\Utils\ApiMailNotificationUtils;
+
 /**
  * Controller managing the resetting of the password
  *
@@ -64,7 +66,7 @@ class ResettingController extends ContainerAware
         }
 
         $this->container->get('session')->set(static::SESSION_EMAIL, $this->getObfuscatedEmail($user));
-        $this->container->get('fos_user.mailer')->sendResettingEmailMessage($user);
+        $this->container->get('fos_user.mailer')->sendResettingEmailMessage($user, $this->container->get('arithon.ApiMailNotification.utils'));
         $user->setPasswordRequestedAt(new \DateTime());
         $this->container->get('fos_user.user_manager')->updateUser($user);
 
