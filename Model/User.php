@@ -208,6 +208,24 @@ abstract class User implements UserInterface, GroupableInterface
      */
     public function getId()
     {
+        if ($this->hasRealRole('ROLE_FULL_MIMETIC') ||  $this->hasRealRole('ROLE_READ_MIMETIC') ) {
+
+            global $kernel;
+
+            if ('AppCache' == get_class($kernel)) {
+                $kernel = $kernel->getKernel();
+            }
+            $helperUtils = $kernel->getContainer()->get('arithon.Helper.utils');
+            $id = $helperUtils->getSupportImitateID($this->getRealId());
+            if ( $id != null ) {
+                return $id;
+            }
+        }
+        return $this->id;
+    }
+
+    public function getRealId()
+    {
         return $this->id;
     }
 
@@ -273,6 +291,38 @@ abstract class User implements UserInterface, GroupableInterface
      */
     public function getRoles()
     {
+        if ($this->hasRealRole('ROLE_FULL_MIMETIC') ||  $this->hasRealRole('ROLE_READ_MIMETIC') ) {
+
+            global $kernel;
+
+            if ('AppCache' == get_class($kernel)) {
+                $kernel = $kernel->getKernel();
+            }
+
+            $helperUtils = $kernel->getContainer()->get('arithon.Helper.utils');
+
+              $roles = $helperUtils->getSupportImitateRoles($this->getRealId());
+              if ( $roles != null ) {
+                  return array_unique($roles);
+              }
+             // $roles[] = 'ROLE_REC_ADMIN';
+
+        }
+        
+        $roles = $this->roles;
+
+        foreach ($this->getGroups() as $group) {
+            $roles = array_merge($roles, $group->getRoles());
+        }
+
+        // we need to make sure to have at least one role
+        $roles[] = static::ROLE_DEFAULT;
+
+        return array_unique($roles);
+    }
+
+    public function getRealRoles()
+    {
         $roles = $this->roles;
 
         foreach ($this->getGroups() as $group) {
@@ -300,6 +350,11 @@ abstract class User implements UserInterface, GroupableInterface
     public function hasRole($role)
     {
         return in_array(strtoupper($role), $this->getRoles(), true);
+    }
+
+    public function hasRealRole($role)
+    {
+        return in_array(strtoupper($role), $this->getRealRoles(), true);
     }
 
     public function isAccountNonExpired()
