@@ -1,14 +1,35 @@
 {% trans_default_domain 'FOSUserBundle' %}
 
-<form action="{{ path('fos_user_resetting_send_email') }}" method="POST" class="fos_user_resetting_request">
-    <div>
-        {% if invalid_username is defined %}
-            <p>{{ 'resetting.request.invalid_username'|trans({'%username%': invalid_username}) }}</p>
-        {% endif %}
-        <label for="username">{{ 'resetting.request.username'|trans }}</label>
-        <input type="text" id="username" name="username" required="required" />
+<form action="{{ path('fos_user_resetting_send_email') }}" method="POST" name="resetPasswordCSRF" value="KbyUmhTLMpYj7CD2di7JKP1P3qmLlkPt" class="fos_user_resetting_request">
+
+    <div class="panel panel-primary">
+        <div class="panel-body">
+            <h4 class="text-center" style="margin-bottom: 25px;">Reset Password</h4>
+            
+            {% if invalid_username is defined %}
+            <p>Invalid username</p>
+            {% endif %}
+
+            <form action="#" class="form-horizontal" style="margin-bottom: 0px !important;">
+                <div class="form-group">
+                    <div class="col-sm-12">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-user"></i></span>
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Username" required>
+                        </div>
+                    </div>
+                </div>
+            </form>
+                    
+        </div>
+        <div class="panel-footer">
+            <div class="pull-left">
+                <a href="{{ path('fos_user_security_login') }}" class="btn btn-default"><i class="fa fa-arrow-left"></i> Back</a>
+            </div>
+            <div class="pull-right">
+                <input type="submit" class="btn btn-success" value ="Next"/>
+            </div>
+        </div>
     </div>
-    <div>
-        <input type="submit" value="{{ 'resetting.request.submit'|trans }}" />
-    </div>
+    
 </form>
