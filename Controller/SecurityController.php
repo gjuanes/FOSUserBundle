@@ -14,6 +14,8 @@ namespace FOS\UserBundle\Controller;
 use Symfony\Component\DependencyInjection\ContainerAware;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\SecurityContext;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+
 
 class SecurityController extends ContainerAware
 {
@@ -21,6 +23,11 @@ class SecurityController extends ContainerAware
     {
         /** @var $session \Symfony\Component\HttpFoundation\Session\Session */
         $session = $request->getSession();
+        $secured = unserialize($session->get('_security_main'));
+        if ($secured) {
+            return new RedirectResponse($this->container->get('router')->generate('arithon_user_main'));
+        }
+
 
         // get the error if any (works with forward and redirect -- see below)
         if ($request->attributes->has(SecurityContext::AUTHENTICATION_ERROR)) {
