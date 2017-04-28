@@ -1,6 +1,43 @@
 {% trans_default_domain 'FOSUserBundle' %}
 
 <div class="fos_user_user_show">
-    <p>{{ 'profile.show.username'|trans }}: {{ user.username }}</p>
-    <p>{{ 'profile.show.email'|trans }}: {{ user.email }}</p>
+    {#<p>{{ 'profile.show.username'|trans }}: {{ user.username }}</p>#}
+    {#<p>{{ 'profile.show.username'|trans }}: {{ user.username }}</p>#}
+    <div class="panel">
+        <div class="panel-heading">Your information</div>
+        <div class="panel-body">
+            <p>
+                <strong>User:</strong> {{ user.username }}
+            </p>
+            <p>
+                <strong>Email:</strong> {{ user.email }}
+            </p>
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-heading">Next step: download the apps!</div>
+        <div class="panel-body">
+            <div class="col-md-6">
+                <a href="https://play.google.com/store/apps/details?id=com.tempbuddy.tempbuddy&hl=en"><img src="{%
+                    image 'bundles/Theme/assets/img/third_party/google_play_logo.png'
+                    output='assets/img/third_party/google_play_logo.png'
+                    %}{{
+                asset_url }}{% endimage %}" title="Download the Android app from Google Play" alt="You can download the
+                Android app
+                here"/></a>
+            </div>
+            <div class="col-md-6">
+                <a href="https://itunes.apple.com/ie/app/tempbuddy/id905008100?mt=8">
+                    <img src="{% image
+                    'bundles/Theme/assets/img/third_party/ios_app_store_logo.png' output='assets/img/third_party/ios_app_store_logo.png' %}{{
+                    asset_url }}{% endimage %}" title="Download the iOs app from the App Store Logo" alt="You can
+                    download
+                    the ios app
+                    here"/>
+                </a>
+            </div>
+        </div>
+    </div>
+
+
 </div>
