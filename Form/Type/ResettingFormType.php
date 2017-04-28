@@ -30,7 +30,7 @@ class ResettingFormType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder->add('plainPassword', 'repeated', array(
-            'type' => 'password',
+            'type' => 'hidden',
             'options' => array('translation_domain' => 'FOSUserBundle'),
             'first_options' => array('label' => 'form.new_password'),
             'second_options' => array('label' => 'form.new_password_confirmation'),
