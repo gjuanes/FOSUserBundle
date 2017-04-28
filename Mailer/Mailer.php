@@ -16,6 +16,9 @@ use Symfony\Component\Routing\RouterInterface;
 use FOS\UserBundle\Model\UserInterface;
 use FOS\UserBundle\Mailer\MailerInterface;
 
+use Arithon\TempBuddyBundle\Utils\ApiMailNotificationUtils;
+
+
 /**
  * @author Thibault Duplessis <thibault.duplessis@gmail.com>
  */
@@ -51,7 +54,7 @@ class Mailer implements MailerInterface
     /**
      * {@inheritdoc}
      */
-    public function sendResettingEmailMessage(UserInterface $user)
+    public function sendResettingEmailMessage(UserInterface $user, $caller = null)
     {
         $template = $this->parameters['resetting.template'];
         $url = $this->router->generate('fos_user_resetting_reset', array('token' => $user->getConfirmationToken()), true);
@@ -59,7 +62,7 @@ class Mailer implements MailerInterface
             'user' => $user,
             'confirmationUrl' => $url
         ));
-        $this->sendEmailMessage($rendered, $this->parameters['from_email']['resetting'], $user->getEmail());
+        $this->sendEmailMessage($rendered, $this->parameters['from_email']['resetting'], $user->getEmail(), $caller);
     }
 
     /**
@@ -67,19 +70,24 @@ class Mailer implements MailerInterface
      * @param string $fromEmail
      * @param string $toEmail
      */
-    protected function sendEmailMessage($renderedTemplate, $fromEmail, $toEmail)
+    protected function sendEmailMessage($renderedTemplate, $fromEmail, $toEmail, $caller)
     {
         // Render the email, use the first line as the subject, and the rest as the body
         $renderedLines = explode("\n", trim($renderedTemplate));
         $subject = $renderedLines[0];
         $body = implode("\n", array_slice($renderedLines, 1));
 
-        $message = \Swift_Message::newInstance()
-            ->setSubject($subject)
-            ->setFrom($fromEmail)
-            ->setTo($toEmail)
-            ->setBody($body);
+        if ( $caller != null ) {
+         //   echo print_r($fromEmail,true)."  ".print_r($toEmail, true); 
+            $caller ->sendMandrilMail("no-reply@alerts.tempbuddy.com", $toEmail, $body);
+        } else {
+            $message = \Swift_Message::newInstance()
+                ->setSubject($subject)
+                ->setFrom($fromEmail)
+                ->setTo($toEmail)
+                ->setBody($body);
 
-        $this->mailer->send($message);
+            $this->mailer->send($message);
+        }
     }
 }
