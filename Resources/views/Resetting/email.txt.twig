@@ -6,7 +6,15 @@
 {% endblock %}
 {% block body_text %}
 {% autoescape false %}
-{{ 'resetting.email.message'|trans({'%username%': user.username, '%confirmationUrl%': confirmationUrl}) }}
+    <p>Dear {{ user.username }},</p>
+
+    <p>You have recently requested for your password to be reset.
+    Please follow this <a href="{{confirmationUrl}}">link</a>  to reset your password.</p>
+
+    <p>{{confirmationUrl}}</p>
+
+    <p>When you click on the link, you will be able to enter a password of you choice. Press confirm and your new password will be set and effective from that moment.</p>
+
 {% endautoescape %}
 {% endblock %}
 {% block body_html %}{% endblock %}
