@@ -44,13 +44,6 @@
                     <value>Profile</value>
                 </option>
             </constraint>
-            <constraint name="Email">
-                <option name="message">fos_user.email.invalid</option>
-                <option name="groups">
-                    <value>Registration</value>
-                    <value>Profile</value>
-                </option>
-            </constraint>
         </property>
 
         <property name="plainPassword">
